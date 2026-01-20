@@ -169,6 +169,12 @@ export default function Dashboard() {
           </button>
         </div>
 
+        {activeTab === 'todo' && (
+          <div className="mb-6">
+            <TaskForm onAdd={addTask} />
+          </div>
+        )}
+
         {filteredTasks.length > 0 && (
           <div className="mb-6 flex items-center justify-between bg-white rounded-xl px-4 py-3 shadow-md">
             <div className="flex items-center gap-2 text-gray-700">
@@ -184,12 +190,6 @@ export default function Dashboard() {
               <option value="priority-high">Priority: High to Low</option>
               <option value="priority-low">Priority: Low to High</option>
             </select>
-          </div>
-        )}
-
-        {activeTab === 'todo' && (
-          <div className="mb-6">
-            <TaskForm onAdd={addTask} />
           </div>
         )}
 
