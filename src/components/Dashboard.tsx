@@ -3,15 +3,17 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase, Task } from '../lib/supabase';
 import TaskForm from './TaskForm';
 import TaskItem from './TaskItem';
-import { LogOut, CheckSquare, ListTodo, CheckCircle2 } from 'lucide-react';
+import { LogOut, CheckSquare, ListTodo, CheckCircle2, ArrowUpDown } from 'lucide-react';
 
 type TabType = 'todo' | 'completed';
+type SortOrder = 'default' | 'priority-high' | 'priority-low';
 
 export default function Dashboard() {
   const { user, signOut } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>('todo');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('default');
 
   useEffect(() => {
     if (user) {
@@ -83,8 +85,21 @@ export default function Dashboard() {
     }
   };
 
-  const filteredTasks = tasks.filter((task) =>
-    activeTab === 'todo' ? !task.completed : task.completed
+  const sortTasks = (tasksToSort: Task[]) => {
+    const priorityValue = { high: 3, medium: 2, low: 1 };
+
+    switch (sortOrder) {
+      case 'priority-high':
+        return [...tasksToSort].sort((a, b) => priorityValue[b.priority] - priorityValue[a.priority]);
+      case 'priority-low':
+        return [...tasksToSort].sort((a, b) => priorityValue[a.priority] - priorityValue[b.priority]);
+      default:
+        return tasksToSort;
+    }
+  };
+
+  const filteredTasks = sortTasks(
+    tasks.filter((task) => (activeTab === 'todo' ? !task.completed : task.completed))
   );
 
   const todoCount = tasks.filter((t) => !t.completed).length;
@@ -153,6 +168,24 @@ export default function Dashboard() {
             </span>
           </button>
         </div>
+
+        {filteredTasks.length > 0 && (
+          <div className="mb-6 flex items-center justify-between bg-white rounded-xl px-4 py-3 shadow-md">
+            <div className="flex items-center gap-2 text-gray-700">
+              <ArrowUpDown className="w-4 h-4" />
+              <span className="font-medium text-sm">Sort by:</span>
+            </div>
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value as SortOrder)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm"
+            >
+              <option value="default">Default (Newest First)</option>
+              <option value="priority-high">Priority: High to Low</option>
+              <option value="priority-low">Priority: Low to High</option>
+            </select>
+          </div>
+        )}
 
         {activeTab === 'todo' && (
           <div className="mb-6">
