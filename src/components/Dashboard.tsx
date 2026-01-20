@@ -53,7 +53,10 @@ export default function Dashboard() {
   const toggleTask = async (id: string, completed: boolean) => {
     const { error } = await supabase
       .from('tasks')
-      .update({ completed })
+      .update({
+        completed,
+        completed_at: completed ? new Date().toISOString() : null
+      })
       .eq('id', id);
 
     if (!error) {

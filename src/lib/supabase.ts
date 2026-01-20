@@ -16,6 +16,7 @@ export type Task = {
   description: string;
   priority: 'low' | 'medium' | 'high';
   completed: boolean;
+  completed_at: string | null;
   created_at: string;
   updated_at: string;
 };

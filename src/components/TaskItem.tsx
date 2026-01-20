@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Task } from '../lib/supabase';
-import { Check, Trash2, Edit2, X, Save } from 'lucide-react';
+import { Check, Trash2, Edit2, X, Save, Calendar } from 'lucide-react';
 
 interface TaskItemProps {
   task: Task;
@@ -27,6 +27,25 @@ export default function TaskItem({ task, onToggle, onDelete, onUpdate }: TaskIte
   const [editDescription, setEditDescription] = useState(task.description);
   const [editPriority, setEditPriority] = useState<Task['priority']>(task.priority);
   const [loading, setLoading] = useState(false);
+
+  const formatCompletedDate = (dateString: string | null) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const isToday = date.toDateString() === today.toDateString();
+    const isYesterday = date.toDateString() === yesterday.toDateString();
+
+    if (isToday) {
+      return `Completed today at ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+    } else if (isYesterday) {
+      return `Completed yesterday at ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+    } else {
+      return `Completed on ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+    }
+  };
 
   const handleSave = async () => {
     if (!editTitle.trim()) return;
@@ -130,8 +149,14 @@ export default function TaskItem({ task, onToggle, onDelete, onUpdate }: TaskIte
             </p>
           )}
 
-          <div className="flex items-center gap-2 text-xs text-gray-500">
+          <div className="flex flex-col gap-1 text-xs text-gray-500">
             <span className="font-medium capitalize">{task.priority} Priority</span>
+            {task.completed && task.completed_at && (
+              <div className="flex items-center gap-1 text-gray-600">
+                <Calendar className="w-3 h-3" />
+                <span>{formatCompletedDate(task.completed_at)}</span>
+              </div>
+            )}
           </div>
         </div>
 
