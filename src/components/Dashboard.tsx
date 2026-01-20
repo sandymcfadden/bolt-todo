@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase, Task } from '../lib/supabase';
 import TaskForm from './TaskForm';
 import TaskItem from './TaskItem';
+import ConfirmModal from './ConfirmModal';
 import { LogOut, CheckSquare, ListTodo, CheckCircle2, ArrowUpDown, Trash2 } from 'lucide-react';
 
 type TabType = 'todo' | 'completed';
@@ -14,6 +15,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>('todo');
   const [sortOrder, setSortOrder] = useState<SortOrder>('default');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -72,14 +74,8 @@ export default function Dashboard() {
     }
   };
 
-  const deleteAllCompleted = async () => {
+  const handleDeleteAllCompleted = async () => {
     if (!user) return;
-
-    const confirmed = window.confirm(
-      `Are you sure you want to delete all ${completedCount} completed tasks? This action cannot be undone.`
-    );
-
-    if (!confirmed) return;
 
     const { error } = await supabase
       .from('tasks')
@@ -90,6 +86,7 @@ export default function Dashboard() {
     if (!error) {
       fetchTasks();
     }
+    setShowDeleteModal(false);
   };
 
   const updateTask = async (
@@ -216,7 +213,7 @@ export default function Dashboard() {
               </select>
               {activeTab === 'completed' && completedCount > 0 && (
                 <button
-                  onClick={deleteAllCompleted}
+                  onClick={() => setShowDeleteModal(true)}
                   className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition text-sm font-medium"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -264,6 +261,16 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        title="Delete All Completed Tasks"
+        message={`Are you sure you want to delete all ${completedCount} completed tasks? This action cannot be undone.`}
+        confirmText="Delete All"
+        cancelText="Cancel"
+        onConfirm={handleDeleteAllCompleted}
+        onCancel={() => setShowDeleteModal(false)}
+      />
     </div>
   );
 }
