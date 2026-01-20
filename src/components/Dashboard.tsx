@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase, Task } from '../lib/supabase';
 import TaskForm from './TaskForm';
 import TaskItem from './TaskItem';
-import { LogOut, CheckSquare, ListTodo, CheckCircle2, ArrowUpDown } from 'lucide-react';
+import { LogOut, CheckSquare, ListTodo, CheckCircle2, ArrowUpDown, Trash2 } from 'lucide-react';
 
 type TabType = 'todo' | 'completed';
 type SortOrder = 'default' | 'priority-high' | 'priority-low';
@@ -66,6 +66,26 @@ export default function Dashboard() {
 
   const deleteTask = async (id: string) => {
     const { error } = await supabase.from('tasks').delete().eq('id', id);
+
+    if (!error) {
+      fetchTasks();
+    }
+  };
+
+  const deleteAllCompleted = async () => {
+    if (!user) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete all ${completedCount} completed tasks? This action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    const { error } = await supabase
+      .from('tasks')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('completed', true);
 
     if (!error) {
       fetchTasks();
@@ -184,15 +204,26 @@ export default function Dashboard() {
               <ArrowUpDown className="w-4 h-4" />
               <span className="font-medium text-sm">Sort by:</span>
             </div>
-            <select
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value as SortOrder)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm"
-            >
-              <option value="default">Default (Newest First)</option>
-              <option value="priority-high">Priority: High to Low</option>
-              <option value="priority-low">Priority: Low to High</option>
-            </select>
+            <div className="flex items-center gap-3">
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value as SortOrder)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm"
+              >
+                <option value="default">Default (Newest First)</option>
+                <option value="priority-high">Priority: High to Low</option>
+                <option value="priority-low">Priority: Low to High</option>
+              </select>
+              {activeTab === 'completed' && completedCount > 0 && (
+                <button
+                  onClick={deleteAllCompleted}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition text-sm font-medium"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete All
+                </button>
+              )}
+            </div>
           </div>
         )}
 
